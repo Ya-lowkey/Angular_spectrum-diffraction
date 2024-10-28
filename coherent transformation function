@@ -62,6 +62,3 @@ xlabel('长度/mm','position',[1.2*pos(2) -0.01*pos(4)]);
 %设置x轴单位标签在图的右下方
 ylabel('光强/cd','position',[1.09*pos(1) 0.9*pos(4)]); %设置y轴单位标签在图的左上方
 subplot(2,2,4),imshow(abs(B1));axis image;colormap gray;title('距离184mm时的菲涅耳积分衍射图像'); 
-
-
-%绘制衍射图像，经测试后发现gray的线性映射成像效果 -0.01*pos(4)]); %设置x轴单位标签在图的右下方
