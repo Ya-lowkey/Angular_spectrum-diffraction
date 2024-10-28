@@ -1,0 +1,67 @@
+%        
+clc;
+clear;
+close all;
+set(0,'defaultfigurecolor','w'); %将画布默认底色改为白色
+milli = 1e-3;
+micron = 1e-6;
+nano = 1e-9; % 设置长度单位（毫米 微米 纳米）
+%% 衍射屏形状
+N =1024;
+n1=860;% 采样点数
+imag = zeros(N,N); %读取不规则形状的光孔图片
+imag((N-n1)./2:(N+n1)./2,(N-n1)./2:(N+n1)./2)=1;
+imag = double(imag);
+%imshow(imag)
+%
+% 参数设置
+pix = 4.65.*micron; %像素宽(mm)
+lambda = 532*nano; % 入射波长
+k = 2*pi/lambda; % 波数
+z1 = 184*milli; %观察屏距离1(mm)
+
+%% 坐标系建立
+originpoint = ceil((N+1)/2); 
+totalsize = pix*N;
+% 空间坐标系
+xaxis=(1-originpoint:N-originpoint)*pix; 
+x=repmat(xaxis,[length(xaxis),1]);
+yaxis=(1-originpoint:N-originpoint)*pix;
+y=repmat(yaxis',[1,length(xaxis)]);
+% 角谱衍射坐标系
+dfx=1/(2*totalsize);
+dx=(1-originpoint:N-originpoint)*dfx;
+dfy=1/(2*totalsize);
+dy=(1-originpoint:N-originpoint)*dfy;
+[dx,dy] = meshgrid(dx,dy); % 生成网格矩阵
+
+%% 角谱衍射
+beam1 = imag; 
+Beam1 = (fft2(fftshift(beam1))); 
+%菲涅耳积分
+%h4=exp(1i*k./(2*z1).*(x.^2+y.^2));
+%菲涅耳卷积核
+%h3=exp(1i*k*z1)./(1i*lambda*z1).*exp(1i*k./(2*z1).*(x.^2+y.^2));
+%瑞利索末菲卷积核
+%h2=z1./(1i*lambda).*exp(1i*k*sqrt(x.^2+y.^2+z1.^2))./(x.^2+y.^2+z1.^2);
+%角谱传递函数
+h1 = exp(1i*k*z1*sqrt(1-(lambda*dx).^2-(lambda*dy).^2)); %空间传递函数
+H1 = Beam1.* (fft2(fftshift(h1))); 
+A1 = fftshift(ifft2((H1)));
+%A1=fftshift(fft2(beam1.*h4)).*exp(1i.*k.*z1).*h4;
+B1 = (A1/max(max(A1))); %振幅归一化
+E1 = abs(A1); %光强
+axis equal
+%% 绘图
+figure(1); %绘制观察屏距离10mm的图像
+subplot(2,2,1),imshow(imag,[]),axis on ;title('孔径图像'); %绘制孔径图像
+subplot(2,2,2),mesh(dx,dy,E1),title('光强三维分布'); %光强三维分布图
+subplot(2,2,3),plot(dx(1,:),E1(N/2,:)),title('光强二维分布'); %光强二维分布图
+pos=axis; %取得当前坐标轴的范围，即[xmin xmax ymin ymax]
+xlabel('长度/mm','position',[1.2*pos(2) -0.01*pos(4)]);
+%设置x轴单位标签在图的右下方
+ylabel('光强/cd','position',[1.09*pos(1) 0.9*pos(4)]); %设置y轴单位标签在图的左上方
+subplot(2,2,4),imshow(abs(B1));axis image;colormap gray;title('距离184mm时的菲涅耳积分衍射图像'); 
+
+
+%绘制衍射图像，经测试后发现gray的线性映射成像效果 -0.01*pos(4)]); %设置x轴单位标签在图的右下方
